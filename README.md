@@ -10,9 +10,6 @@ For evaluation, we measure the effectiveness of our system in real matches. We s
 
 For any enquiries, please email me at maxingaussian@gmail.com
 
-## Highlight: Two-Layer Gaussian Process Regression Model
-![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
-
 ## Highlight: Player's Ability Inferred From Player's Performance
 <h3 align="center">
 LeBron James FG rate
@@ -22,6 +19,10 @@ LeBron James FG rate
 LeBron James 3P rate
 </h3>
 ![lebron3P](experiment-2014-2015/lebron_3p.png?raw=true "LeBron 3P")
+
+## Highlight: Two-Layer Gaussian Process Regression Model
+![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
+
 
 ## Experimental Results
 ![AccuracyCurve](experiment-2014-2015/accuracy_curve.png "Accuracy Curve")
