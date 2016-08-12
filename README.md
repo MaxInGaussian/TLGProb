@@ -9,3 +9,13 @@ Using TLGProb, we not only obtain a reasonably-determined winning probability fo
 For evaluation, we measure the effectiveness of our system in real matches. We selected one of the most popular team sport events around the world -- National Basketball Association (NBA) as the domain for experiments. Finally, using 1,230 matches from 2014/2015 season of NBA, our system correctly predicted the winning teams for approximately 85% of matches.
 
 For any enquiries, please email me at maxingaussian@gmail.com
+
+![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
+
+## Highlight: Performance v.s. Ability
+![lebronFG](experiment-2014-2015/lebron_fg.png?raw=true "LeBron FG")
+![lebron3P](experiment-2014-2015/lebron_3p.png?raw=true "LeBron 3P")
+
+## Experimental Results
+![AccuracyCurve](experiment-2014-2015/accuracy_curve.png "Accuracy Curve")
+![RejectCurve](experiment-2014-2015/reject_curve.png "Reject Curve")
