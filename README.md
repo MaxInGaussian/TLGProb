@@ -13,7 +13,7 @@ For any enquiries, please email me at maxingaussian@gmail.com
 ## Highlight: Two-Layer Gaussian Process Regression Model
 ![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
 
-## Highlight: Player's Ability Inference From Performance
+## Highlight: Player's Ability Inference From Player's Performance
 <h3 align="center">
 LeBron James FG rate
 </h3>
