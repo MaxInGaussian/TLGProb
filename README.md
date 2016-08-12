@@ -13,7 +13,7 @@ For any enquiries, please email me at maxingaussian@gmail.com
 ## Highlight: Two-Layer Gaussian Process Regression Model
 ![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
 
-## Highlight: Ability Inference From Performance
+## Highlight: Player's Ability Inference From Performance
 ### LeBron James FG rate
 ![lebronFG](experiment-2014-2015/lebron_fg.png?raw=true "LeBron FG")
 ### LeBron James 3P rate
