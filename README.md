@@ -14,9 +14,13 @@ For any enquiries, please email me at maxingaussian@gmail.com
 ![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
 
 ## Highlight: Player's Ability Inference From Performance
-### LeBron James FG rate
+<h3 align="center">
+LeBron James FG rate
+</h3>
 ![lebronFG](experiment-2014-2015/lebron_fg.png?raw=true "LeBron FG")
-### LeBron James 3P rate
+<h3 align="center">
+LeBron James 3P rate
+</h3>
 ![lebron3P](experiment-2014-2015/lebron_3p.png?raw=true "LeBron 3P")
 
 ## Experimental Results
