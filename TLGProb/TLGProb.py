@@ -328,7 +328,7 @@ class TLGProb(object):
                     "= %.3f"%(count_correct[j]*1./(count_incorrect[j]+count_correct[j])))
         return count_reject, count_correct, count_incorrect
 
-    def eval_accuracy(self, eval_season=None, plot_correct_dist=False, threshold=0.5):
+    def eval_accuracy(self, eval_season=None, threshold=0.5):
         self.eval_results = []
         if(not self.check_trained_models()):
             return
@@ -347,7 +347,8 @@ class TLGProb(object):
                 continue
             print("\nIf", team1, "meets", team2, "on", year, month, day,"then...")
             pred_win_team, prob, y_pred, y_std = self.predict_match(team1, team2, year, month, day, threshold)
-            self.eval_results.append([prob, team1pts-team2pts])
+            y_true = team1pts-team2pts
+            self.eval_results.append([prob, np.sign(y_pred)==np.sign(y_true), y_pred, y_true])
             true_win_team = team1 if team1pts > team2pts else team2
             print("In reality,", true_win_team, "win!")
             if(pred_win_team == "---"):
@@ -366,12 +367,10 @@ class TLGProb(object):
         print("We have", count_reject, "rejections,",\
             count_correct, "correct prediction and,",\
             count_incorrect, "incorrect prediction.")
-        if(plot_correct_dist):
-            pass
         file_dir = os.path.dirname(os.path.realpath('__file__'))
         evaluation_log_csv = self.model_path + "evaluation_log.csv"
         first_save = not os.path.isfile(evaluation_log_csv)
-        headers = ["Date", "Team Model", "Postion C Model", "Postion F Model", "Postion G Model",
+        headers = ["Date", "Team Model", "Center Model", "Forward Model", "Guard Model",
                    "Num of Test Case", "Num of Reject", "Num of Correct", "Num of Incorrect", "Accuracy"]
         with open(evaluation_log_csv, 'wt' if first_save else 'at') as f:
             csv_writer = csv.DictWriter(f, fieldnames=headers)
@@ -380,22 +379,10 @@ class TLGProb(object):
             csv_dict = dict.fromkeys(headers)
             from datetime import datetime
             csv_dict[headers[0]] = datetime.today().strftime("%Y-%m-%d")
-            csv_dict[headers[1]] = "%s - [SSGP %d (%s)]:" % (
-                self.loaded_winning_team_model.hashed_name,
-                self.loaded_winning_team_model.m,
-                ("NOISY" if self.loaded_winning_team_model.freq_noisy else "NOT_NOISY"))
-            csv_dict[headers[2]] = "%s - [SSGP %d (%s)]:" % (
-                self.loaded_player_models["C"].hashed_name,
-                self.loaded_player_models["C"].m,
-                ("NOISY" if self.loaded_player_models["C"].freq_noisy else "NOT_NOISY"))
-            csv_dict[headers[3]] = "%s - [SSGP %d (%s)]:" % (
-                self.loaded_player_models["F"].hashed_name,
-                self.loaded_player_models["F"].m,
-                ("NOISY" if self.loaded_player_models["F"].freq_noisy else "NOT_NOISY"))
-            csv_dict[headers[4]] = "%s - [SSGP %d (%s)]:" % (
-                self.loaded_player_models["G"].hashed_name,
-                self.loaded_player_models["G"].m,
-                ("NOISY" if self.loaded_player_models["G"].freq_noisy else "NOT_NOISY"))
+            csv_dict[headers[1]] = self.loaded_winning_team_model.__str__()
+            csv_dict[headers[2]] = self.loaded_player_models["C"].__str__()
+            csv_dict[headers[3]] = self.loaded_player_models["F"].__str__()
+            csv_dict[headers[4]] = self.loaded_player_models["G"].__str__()
             csv_dict[headers[5]] = test_size
             csv_dict[headers[6]] = count_reject
             csv_dict[headers[7]] = count_correct
@@ -408,10 +395,10 @@ class TLGProb(object):
         import glob
         file_dir = os.path.dirname(os.path.realpath('__file__'))
         model_dir = os.path.join(file_dir, "models/basketball_models/predictors/")
-        C_models = glob.glob(model_dir+"C*.pkl")
-        F_models = glob.glob(model_dir+"F*.pkl")
-        G_models = glob.glob(model_dir+"G*.pkl")
-        WIN_models = glob.glob(model_dir+"WIN*.pkl")
+        C_models = glob.glob(model_dir+"Center*.pkl")
+        F_models = glob.glob(model_dir+"Forward*.pkl")
+        G_models = glob.glob(model_dir+"Guard*.pkl")
+        WIN_models = glob.glob(model_dir+"Team*.pkl")
         self.load_player_models()
         self.load_winning_team_model()
         best_models, models, accuracy = [None]*4, [None]*4, 0
@@ -493,7 +480,7 @@ class TLGProb(object):
             model_dir = self.model_path
         else:
             model_dir = self.model_path+"predictors/"
-        return model_dir + "WIN" + name + ".pkl"
+        return model_dir + "Team" + name + ".pkl"
 
     def get_player_model_path_by_pos(self, pos, name=""):
         file_dir = os.path.dirname(os.path.realpath('__file__'))
@@ -503,11 +490,11 @@ class TLGProb(object):
             model_dir = self.model_path+"predictors/"
         pos_pred = "G"
         if("C" in pos):
-            pos_pred = "C"
+            pos_pred = "Center"
         elif("F" in pos):
-            pos_pred = "F"
+            pos_pred = "Forward"
         elif("G" in pos):
-            pos_pred = "G"
+            pos_pred = "Guard"
         return model_dir + pos_pred + name + ".pkl"
 
     def get_team_players_by_date(self, team, year, month, day, num_of_players=10):
