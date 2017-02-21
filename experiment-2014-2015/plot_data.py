@@ -1,7 +1,10 @@
-"""
-Created on Tue Mar 25 01:11:39 2016
-@author: Max W. Y. Lam
-"""
+################################################################################
+#  TLGProb: Two-Layer Gaussian Process Regression Model For
+#           Winning Probability Calculation of Two-Team Sports
+#  Github: https://github.com/MaxInGaussian/TLGProb
+#  Author: Max W. Y. Lam (maxingaussian@gmail.com)
+################################################################################
+
 import sys
 sys.path.append("../")
 import matplotlib.pyplot as plt
