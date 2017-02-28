@@ -1,7 +1,7 @@
 # TLGProb
 
 Sports analytics is gaining much attention in the research community
-nowadays. This paper deals with a prominent problem in sports analytics, namely,
+nowadays. This project deals with a prominent problem in sports analytics, namely,
 winning probability calculation. In particular, we focus on the two-team sports. A
 novel model called TLGProb is proposed by stacking a non-linear regression model
 – Gaussian process regression (GPR) to address complex association between match
