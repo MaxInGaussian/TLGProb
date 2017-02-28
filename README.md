@@ -21,9 +21,9 @@ LeBron James 3P rate
 ![lebron3P](experiment-2014-2015/lebron_3p.png?raw=true "LeBron 3P")
 
 ## Highlight: Two-Layer Gaussian Process Regression Model
-![TLGstructure](experiment-2014-2015/TLG_structure.png?raw=true "TLG structure")
+![TLGstructure](TLGProb_Architecture.png?raw=true "TLG structure")
 
 
 ## Experimental Results
-![AccuracyCurve](experiment-2014-2015/accuracy_curve.png "Accuracy Curve")
-![RejectCurve](experiment-2014-2015/reject_curve.png "Reject Curve")
+![CorrectVsIncorrect](correct_vs_incorrect.png "Correct vs Incorrect")
+![AccuracyVsRejection](accuracy_vs_rejection.png "Accuracy vs Rejection")
