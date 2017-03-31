@@ -132,7 +132,7 @@ def plot_players_ability(TLGProb_NBA):
 
 TLGProb_NBA = TLGProb()
 TLGProb_NBA.load_data()
-fig, ax = plt.subplots(2, 1, sharex=True, figsize=(10, 8), dpi=200)
+fig, ax = plt.subplots(2, 1, sharex=True, figsize=(10, 8), dpi=300)
 player = "LeBron James"
 feature = "3p"
 plot_unsmoothed_feature(TLGProb_NBA, fig, ax[0], "b--", feature, player)
@@ -146,4 +146,4 @@ plot_smoothed_feature(TLGProb_NBA, fig, ax[1], "r-", feature, player)
 ax[1].legend(loc=9, prop={'size':15})
 ax[1].set_ylabel(feature.upper(), fontsize=18)
 plt.tight_layout()
-fig.savefig('../lebron_james_3p_fg.png')
+fig.savefig('../lebron_james_3p_fg.eps')

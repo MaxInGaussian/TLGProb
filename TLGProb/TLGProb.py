@@ -599,8 +599,9 @@ class TLGProb(object):
         print("Training and Testing Dataset For Player Models are Generated!")
         return res
 
-    def train_player_models(self):
+    def train_player_models(self, regression_method="SSGPR"):
         import glob
+        import random
         print("Start Training Player Models ......")
         data = self.get_player_models_dataset()
         np.random.seed(np.random.randint(1001))
@@ -617,7 +618,7 @@ class TLGProb(object):
             y = dataset[1].copy()
             print("Next POSITION to train is", pos + ",", "Size =", n)
             best_model_path = None
-            import random
+            if(regression_method)
             freq_noisy = random.choice([True, False])
             model_ssgp = SSGP(int(np.random.randint(n/15)+n/20), freq_noisy)
             print("TRY NEW MODEL [SSGP %d (%s)] ......" % (model_ssgp.m,
@@ -734,7 +735,7 @@ class TLGProb(object):
         print("Training and Testing Dataset For Winning Team Model are Generated!")
         self.winning_team_model_dataset = [X, y]
 
-    def train_winning_team_model(self):
+    def train_winning_team_model(self, regression_method="SSGPR"):
         import glob
         print("Start Training Winning Team Model ......")
         if(self.winning_team_model_dataset is None):
