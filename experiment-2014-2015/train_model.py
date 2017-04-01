@@ -7,13 +7,13 @@
 
 import sys
 sys.path.append("../")
-from models import basketball_model
+from TLGProb import TLGProb
 
 
-bas = basketball_model(
+TLGProb_NBA = TLGProb(
     database_path="database/",
-    model_path="trained_gpr/")
-bas.load_data()
-while(1):
-    bas.train_winning_team_model()
-    bas.train_player_models()
+    model_path="trained_models/")
+TLGProb_NBA.load_data()
+TLGProb_NBA.train_player_models(regression_method="RidgeCV")
+TLGProb_NBA.train_winning_team_model(regression_method="RidgeCV")
+TLGProb_NBA.eval_accuracy(2015)
