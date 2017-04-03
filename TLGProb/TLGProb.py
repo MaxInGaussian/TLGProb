@@ -9,6 +9,7 @@ import sys, os
 import csv
 import numpy as np
 from SSGP import SSGP
+from sklearn.model_selection import GridSearchCV
 
 class TLGProb(object):
 
@@ -280,9 +281,9 @@ class TLGProb(object):
         return output_str
 
     def eval_accuracy_by_date(self, year, month, day,
-        test_nums=[20, 50, 100], regression_mehtod="SSGPR"):
-        self.load_player_models(regression_mehtod)
-        self.load_winning_team_model(regression_mehtod)
+        test_nums=[20, 50, 100], regression_method="SSGPR"):
+        self.load_player_models(regression_method)
+        self.load_winning_team_model(regression_method)
         test_ind = {h:{} for h in test_nums}
         count_reject, count_correct, count_incorrect = [0]*len(test_nums), [0]*len(test_nums), [0]*len(test_nums)
         date_int = year*10000 + month*100 + day
@@ -328,9 +329,9 @@ class TLGProb(object):
                     "= %.3f"%(count_correct[j]*1./(count_incorrect[j]+count_correct[j])))
         return count_reject, count_correct, count_incorrect
 
-    def eval_accuracy(self, eval_season=None, threshold=0.5, regression_mehtod="SSGPR"):
+    def eval_accuracy(self, eval_season=None, threshold=0.5, regression_methods=["SSGPR", "SSGPR"]):
         self.eval_results = []
-        if(not self.check_trained_models(regression_mehtod)):
+        if(not self.check_trained_models(regression_methods)):
             return
         self.correct_distribution, self.incorrect_distribution = [], []
         test_size = len(self.game_dict["team1"])
@@ -347,7 +348,7 @@ class TLGProb(object):
                 continue
             print("\nIf", team1, "meets", team2, "on", year, month, day,"then...")
             pred_win_team, prob, y_pred, y_std = self.predict_match(
-                team1, team2, year, month, day, threshold, regression_mehtod)
+                team1, team2, year, month, day, threshold, regression_methods)
             y_true = team1pts-team2pts
             self.eval_results.append([prob, np.sign(y_pred)==np.sign(y_true), y_pred, y_true])
             true_win_team = team1 if team1pts > team2pts else team2
@@ -392,16 +393,16 @@ class TLGProb(object):
             csv_writer.writerow(csv_dict)
         return self.eval_results
 
-    def model_selection(self, regression_mehtod="SSGPR"):
+    def model_selection(self, regression_method="SSGPR"):
         import glob
-        file_dir = os.path.dirname(os.path.realpath('__file__'))
-        model_dir = os.path.join(file_dir, "models/basketball_models/predictors/")
+        model_path = self.get_player_model_path_by_pos(pos, regression_method)
+        model_dir = '/'.join(model_path.split('/')[:-1])
         C_models = glob.glob(model_dir+"Center*.pkl")
         F_models = glob.glob(model_dir+"Forward*.pkl")
         G_models = glob.glob(model_dir+"Guard*.pkl")
         WIN_models = glob.glob(model_dir+"Team*.pkl")
-        self.load_player_models(regression_mehtod)
-        self.load_winning_team_model(regression_mehtod)
+        self.load_player_models(regression_method)
+        self.load_winning_team_model(regression_method)
         best_models, models, accuracy = [None]*4, [None]*4, 0
         for C_model in C_models:
             self.loaded_player_models["C"] = SSGP()
@@ -424,18 +425,18 @@ class TLGProb(object):
                             accuracy = _accuracy
                             best_models = models
         import shutil
-        shutil.copy2(best_models[0], self.get_player_model_path_by_pos("C", "SSGPR"))
-        shutil.copy2(best_models[1], self.get_player_model_path_by_pos("F"))
-        shutil.copy2(best_models[2], self.get_player_model_path_by_pos("G"))
+        shutil.copy2(best_models[0], self.get_player_model_path_by_pos("C", regression_method))
+        shutil.copy2(best_models[1], self.get_player_model_path_by_pos("F", regression_method))
+        shutil.copy2(best_models[2], self.get_player_model_path_by_pos("G", regression_method))
         shutil.copy2(best_models[3], self.get_winning_team_model_path())
 
     def predict_match(self, team1, team2, year, month, day,
-    threshold=0.5, regression_mehtod="SSGPR"):
+        threshold=0.5, regression_methods=["SSGPR", "SSGPR"]):
         assert (team1 in self.all_team and team2 in self.all_team), "Unknown Team Name!"
         if(len(self.loaded_player_models) == 0):
-            self.load_player_models(regression_mehtod)        
+            self.load_player_models(regression_method[0])        
         if(self.loaded_winning_team_model is None):
-            self.load_winning_team_model(regression_mehtod)
+            self.load_winning_team_model(regression_method[1])
         X = self.get_winning_team_model_input(team1, team2, year, month, day)
         y_pred, y_std = self.loaded_winning_team_model.predict(X)
         y_pred, y_std = np.double(y_pred), np.double(y_std)
@@ -451,22 +452,24 @@ class TLGProb(object):
             return team2, 1-prob, y_pred, y_std
         return "---", prob, y_pred, y_std
 
-    def check_trained_models(self, regression_mehtod="SSGPR"):
+    def check_trained_models(self, regression_methods=["SSGPR", "SSGPR"]):
         import glob
-        models = glob.glob(self.get_winning_team_model_path(regression_mehtod))
+        models = glob.glob(self.get_winning_team_model_path(
+            regression_method=regression_methods[1]))
         if(len(models) != 1):
             return False
         for pos in ["C", "F", "G"]:
-            models = glob.glob(self.get_player_model_path_by_pos(pos, regression_mehtod))
+            models = glob.glob(self.get_player_model_path_by_pos(pos,
+                regression_method=regression_methods[0]))
             if(len(models) != 1):
                 return False
         return True
 
-    def load_winning_team_model(self, regression_mehtod="SSGPR"):
+    def load_winning_team_model(self, regression_method="SSGPR"):
         print("loading trained Winning Team Predict Model......")
         if(regression_method == "SSGPR"):
             self.loaded_winning_team_model = SSGP()
-            self.loaded_winning_team_model.load(self.get_winning_team_model_path(regression_mehtod))
+            self.loaded_winning_team_model.load(self.get_winning_team_model_path(regression_method))
             print("loaded SSGP", self.loaded_winning_team_model.hashed_name)
         else:
             import pickle
@@ -485,6 +488,7 @@ class TLGProb(object):
                 import pickle
                 with open(self.get_player_model_path_by_pos(pos, regression_method), "rb") as load_f:
                     self.loaded_player_models[pos] = pickle.load(load_f)
+        
     def get_winning_team_model_path(self, regression_method="SSGPR", name=""):
         file_dir = os.path.dirname(os.path.realpath('__file__'))
         if(regression_method == "SSGPR"):
@@ -635,53 +639,6 @@ class TLGProb(object):
             y = dataset[1].copy()
             print("Next POSITION to train is", pos + ",", "Size =", n)
             model_path = self.get_player_model_path_by_pos(pos, regression_method)
-            model_dir = '/'.join(model_path.split('/')[:-1])
-            if not os.path.exists(model_dir):
-                os.makedirs(model_dir)
-            models = glob.glob(model_path)
-            if(regression_method == "SSGPR"):
-                freq_noisy = random.choice([True, False])
-                model_ssgp = SSGP(int(np.random.randint(n/15)+n/20), freq_noisy)
-                print("TRY NEW MODEL [SSGP %d (%s)]......" % (model_ssgp.m,
-                    ("NOISY" if freq_noisy else "NOT_NOISY")))
-                model_ssgp.fit(X.copy(), y.copy())
-                nmse, mnlp = model_ssgp.predict(X.copy(), y.copy())
-                print("\nRESULT OF NEW MODEL [SSGP %d (%s)]:" % (model_ssgp.m,
-                    ("NOISY" if freq_noisy else "NOT_NOISY")))
-                print("\tNMSE = %.5f\n\tMNLP = %.5f"%(nmse, mnlp))
-                if(len(models) == 1):
-                    best_model = SSGP()
-                    best_model.load(self.get_player_model_path_by_pos(pos))
-                    min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
-                    print("RESULT OF BEST MODEL [SSGP %d (%s)]:" % (best_model.m,
-                        ("NOISY" if best_model.freq_noisy else "NOT_NOISY")))
-                    print("\tNMSE = %.5f\n\tMNLP = %.5f"%(min_nmse, min_mnlp))
-                    if(nmse*mnlp < min_nmse*min_mnlp):
-                        os.remove(self.get_player_model_path_by_pos(pos))
-                        model_ssgp.save(self.get_player_model_path_by_pos(pos))
-                        self.eval_accuracy()
-                    if(nmse < min_nmse or mnlp < min_mnlp or nmse*mnlp*0.95 < min_nmse*min_mnlp):
-                        model_ssgp.save(self.get_player_model_path_by_pos(pos, model_ssgp.hashed_name))
-                else:
-                    print("NO BEST MODEL IS STROED")
-                    model_ssgp.save(self.get_player_model_path_by_pos(pos, regression_method))
-                    model_ssgp.save(self.get_player_model_path_by_pos(pos, regression_method, model_ssgp.hashed_name))
-            elif(regression_method == "RidgeCV"):
-                from sklearn.linear_model import RidgeCV
-                model = RidgeCV(cv=5).fit(X, y)
-                y_pred = model.predict(X)
-                nmse = np.sum((y_pred-y)**2)/np.sum((y-np.mean(y))**2)
-                print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
-                best_model = SSGP()
-                best_model.load(self.get_player_model_path_by_pos(pos))
-                min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
-                print("RESULT OF BEST MODEL [SSGP %d (%s)]:" % (best_model.m,
-                    ("NOISY" if best_model.freq_noisy else "NOT_NOISY")))
-                print("NMSE = %.5f\tMNLP = %.5f"%(min_nmse, min_mnlp))
-                import pickle
-                print(model_path)
-                with open(model_path, "wb") as save_f:
-                    pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
 
     def get_winning_team_model_input(self, team1, team2, year, month, day, train=False):
         players = self.get_team_players_by_date(team1, year, month, day)
@@ -821,3 +778,206 @@ class TLGProb(object):
             import pickle
             with open(model_path, "wb") as save_f:
                 pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+    
+    
+    def train_regression(self, X, y, model_path, best_model_path, regression_method):
+        model_dir = '/'.join(model_path.split('/')[:-1])
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        models = glob.glob(model_path)
+        if(regression_method == "SSGPR"):
+            freq_noisy = random.choice([True, False])
+            model_ssgp = SSGP(int(np.random.randint(n/15)+n/20), freq_noisy)
+            print("TRY NEW MODEL [SSGP %d (%s)]......" % (model_ssgp.m,
+                ("NOISY" if freq_noisy else "NOT_NOISY")))
+            model_ssgp.fit(X.copy(), y.copy())
+            nmse, mnlp = model_ssgp.predict(X.copy(), y.copy())
+            print("\nRESULT OF NEW MODEL [SSGP %d (%s)]:" % (model_ssgp.m,
+                ("NOISY" if freq_noisy else "NOT_NOISY")))
+            print("\tNMSE = %.5f\n\tMNLP = %.5f"%(nmse, mnlp))
+            if(len(models) == 1):
+                best_model = SSGP()
+                best_model.load(best_model_path)
+                min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+                print("RESULT OF BEST MODEL [SSGP %d (%s)]:" % (best_model.m,
+                    ("NOISY" if best_model.freq_noisy else "NOT_NOISY")))
+                print("\tNMSE = %.5f\n\tMNLP = %.5f"%(min_nmse, min_mnlp))
+                if(nmse*mnlp < min_nmse*min_mnlp):
+                    os.remove(best_model_path)
+                    model_ssgp.save(best_model_path)
+                    self.eval_accuracy()
+                if(nmse < min_nmse or mnlp < min_mnlp or nmse*mnlp*0.95 < min_nmse*min_mnlp):
+                    model_ssgp.save(best_model_path[:-4]+model_ssgp.hashed_name+".pkl")
+            else:
+                print("NO BEST MODEL IS STROED")
+                model_ssgp.save(best_model_path)
+                model_ssgp.save(best_model_path[:-4]+model_ssgp.hashed_name+".pkl")
+        elif(regression_method == "KNeighborsRegressor"):
+            from sklearn.neighbors import KNeighborsRegressor
+            model = GridSearchCV(
+                KNeighborsRegressor(weights='distance'),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "n_neighbors": list(range(1, 16)),
+                    'metric':['euclidean', 'manhattan',
+                    'chebyshev', 'canberra', 'braycurtis']
+                }
+            )
+            model.fit(X, y.ravel())
+            nmse = -model.best_score_/np.std(y)
+            print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
+            best_model = SSGP()
+            best_model.load(self.get_player_model_path_by_pos(pos))
+            min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+            print("NMSE OF BEST MODEL = %.4f" %(min_nmse, min_mnlp))
+            import pickle
+            print(model_path)
+            with open(model_path, "wb") as save_f:
+                pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+        elif(regression_method == "AdaBoostKNeighborsRegressor"):
+            from sklearn.ensemble import AdaBoostRegressor
+            from sklearn.neighbors import KNeighborsRegressor
+            boost_model = GridSearchCV(
+                KNeighborsRegressor(weights='distance'),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "n_neighbors": list(range(1, 16)),
+                    'metric':['euclidean', 'manhattan',
+                    'chebyshev', 'canberra', 'braycurtis']
+                }
+            )
+            boost_model.fit(X, y.ravel())
+            model = GridSearchCV(
+                AdaBoostRegressor(
+                    boost_model.best_estimator_
+                ),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "n_estimators": list(range(10, 31, 10)),
+                    "loss": ["linear", "square", "exponential"]
+                }
+            )
+            model.fit(X, y.ravel())
+            model = -model.best_score_/np.std(y)
+            print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
+            best_model = SSGP()
+            best_model.load(self.get_player_model_path_by_pos(pos))
+            min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+            print("NMSE OF BEST MODEL = %.4f" %(min_nmse, min_mnlp))
+            import pickle
+            print(model_path)
+            with open(model_path, "wb") as save_f:
+                pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+        elif(regression_method == "DecisionTreeRegressor"):
+            from sklearn.tree import DecisionTreeRegressor
+            model = GridSearchCV(
+                DecisionTreeRegressor(),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "min_samples_split": list(range(1, 16)),
+                    'metric':['mse', 'mae']
+                }
+            )
+            model.fit(X, y.ravel())
+            nmse = -model.best_score_/np.std(y)
+            print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
+            best_model = SSGP()
+            best_model.load(self.get_player_model_path_by_pos(pos))
+            min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+            print("NMSE OF BEST MODEL = %.4f" %(min_nmse, min_mnlp))
+            import pickle
+            print(model_path)
+            with open(model_path, "wb") as save_f:
+                pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+        elif(regression_method == "AdaBoostDecisionTreeRegressor"):
+            from sklearn.ensemble import AdaBoostRegressor
+            from sklearn.tree import DecisionTreeRegressor
+            boost_model = GridSearchCV(
+                DecisionTreeRegressor(),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "min_samples_split": list(range(2, 16)),
+                    'metric':['mse', 'mae']
+                }
+            )
+            boost_model.fit(X, y.ravel())
+            model = GridSearchCV(
+                AdaBoostRegressor(
+                    boost_model.best_estimator_
+                ),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "n_estimators": list(range(10, 31, 10)),
+                    "loss": ["linear", "square", "exponential"]
+                }
+            )
+            model.fit(X, y.ravel())
+            nmse = -model.best_score_/np.std(y)
+            print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
+            best_model = SSGP()
+            best_model.load(self.get_player_model_path_by_pos(pos))
+            min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+            print("NMSE OF BEST MODEL = %.4f" %(min_nmse, min_mnlp))
+            import pickle
+            print(model_path)
+            with open(model_path, "wb") as save_f:
+                pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+        elif(regression_method == "GradientBoostingRegressor"):
+            from sklearn.ensemble import GradientBoostingRegressor
+            model = GridSearchCV(
+                GradientBoostingRegressor(),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "min_samples_split": list(range(2, 16)),
+                    'loss':['ls', 'lad', 'huber', 'quantile'],
+                    "n_estimators": list(range(100, 301, 50)),
+                }
+            )
+            model.fit(X, y.ravel())
+            nmse = -model.best_score_/np.std(y)
+            print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
+            best_model = SSGP()
+            best_model.load(self.get_player_model_path_by_pos(pos))
+            min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+            print("NMSE OF BEST MODEL = %.4f" %(min_nmse, min_mnlp))
+            import pickle
+            print(model_path)
+            with open(model_path, "wb") as save_f:
+                pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+        elif(regression_method == "RandomForestRegressor"):
+            from sklearn.ensemble import RandomForestRegressor
+            model = GridSearchCV(
+                RandomForestRegressor(n_jobs=-1),
+                cv=10,
+                scoring='neg_mean_squared_error',
+                param_grid={
+                    "min_samples_split": list(range(2, 16)),
+                    'criterion':['mse', 'mae'],
+                    "n_estimators": list(range(10, 101, 10)),
+                }
+            )
+            model.fit(X, y.ravel())
+            nmse = -model.best_score_/np.std(y)
+            print("NMSE OF %s MODEL = %.4f" % (regression_method, nmse))
+            best_model = SSGP()
+            best_model.load(self.get_player_model_path_by_pos(pos))
+            min_mse, min_nmse, min_mnlp = best_model.predict(X.copy(), y.copy())
+            print("NMSE OF BEST MODEL = %.4f" %(min_nmse, min_mnlp))
+            import pickle
+            print(model_path)
+            with open(model_path, "wb") as save_f:
+                pickle.dump(model, save_f, pickle.HIGHEST_PROTOCOL)
+    
+    
+    
+    
+    
+    
+    
