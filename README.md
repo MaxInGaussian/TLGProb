@@ -8,11 +8,11 @@ For any enquiries, please email me at maxingaussian@gmail.com
 <h3 align="center">
 LeBron James
 </h3>
-![lebron](experiment-2014-2015/lebron_james_3p_fg.eps?raw=true "LeBron James")
+![lebron](experiment-2014-2015/lebron_james_3p_fg.png?raw=true "LeBron James")
 
 ## Highlight: Two-Layer Gaussian Process Regression Model
-![TLGstructure](experiment-2014-2015/TLGProb.eps?raw=true "TLG structure")
+![TLGstructure](experiment-2014-2015/TLGProb.png?raw=true "TLG structure")
 
 
 ## Experimental Results
-![AccuracyVsRejection](experiment-2014-2015/accuracy_vs_rejection.eps "Accuracy vs Rejection")
+![AccuracyVsRejection](experiment-2014-2015/accuracy_vs_rejection.png?raw=true "Accuracy vs Rejection")
