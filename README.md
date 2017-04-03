@@ -5,9 +5,6 @@ There is a growing interest in applying machine learning algorithms to real-worl
 For any enquiries, please email me at maxingaussian@gmail.com
 
 ## Highlight: Player's Ability Inferred From Player's Performance
-<h3 align="center">
-LeBron James
-</h3>
 ![lebron](experiment-2014-2015/lebron_james_3p_fg.png?raw=true "LeBron James")
 
 ## Highlight: Two-Layer Gaussian Process Regression Model
