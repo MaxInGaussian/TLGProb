@@ -1,14 +1,6 @@
 # TLGProb
 
-Sports analytics is gaining much attention in the research community
-nowadays. This project deals with a prominent problem in sports analytics, namely,
-winning probability calculation. In particular, we focus on the two-team sports. A
-novel model called TLGProb is proposed by stacking a non-linear regression model
-– Gaussian process regression (GPR) to address complex association between match
-outcomes and players’ performances. For evaluation, we selected a popular sports
-event around the world – National Basketball Association (NBA) as the domain for
-experiments. Finally, using TLGProb, we correctly predicted 85.28% of outcomes
-among 1,230 matches in NBA 2014/2015 season.
+There is a growing interest in applying machine learning algorithms to real-world examples by explicitly deriving models based on statistical reasoning. Sports analytics, being favoured mostly by the statistics community and less discussed in the machine learning community, becomes our focus in this paper. Specifically, we model two-team sports for the sake of one-match-ahead forecasting. We present a pioneering approach based on stacked Bayesian regressions. Benefiting from regression flexibility and high standard of performance, Sparse Spectrum Gaussian Process Regression (SSGPR), which improves the standard Gaussian Process Regression (GPR), was chosen to carry out Bayesian regression, resulting in a novel predictive model called TLGProb. For evaluation, the models were applied on a popular sports event -- National Basketball Association (NBA). Finally, with TLGProb, 85.28\% of the matches in NBA 2014/2015 season were correctly predicted, surpassing other prediction methods.
 
 For any enquiries, please email me at maxingaussian@gmail.com
 
@@ -16,12 +8,11 @@ For any enquiries, please email me at maxingaussian@gmail.com
 <h3 align="center">
 LeBron James
 </h3>
-![lebron](lebron_james_3p_fg.png?raw=true "LeBron James")
+![lebron](experiment-2014-2015/lebron_james_3p_fg.eps?raw=true "LeBron James")
 
 ## Highlight: Two-Layer Gaussian Process Regression Model
-![TLGstructure](TLGProb_Architecture.png?raw=true "TLG structure")
+![TLGstructure](experiment-2014-2015/TLGProb.eps?raw=true "TLG structure")
 
 
 ## Experimental Results
-![CorrectVsIncorrect](correct_vs_incorrect.png "Correct vs Incorrect")
-![AccuracyVsRejection](accuracy_vs_rejection.png "Accuracy vs Rejection")
+![AccuracyVsRejection](experiment-2014-2015/accuracy_vs_rejection.eps "Accuracy vs Rejection")
