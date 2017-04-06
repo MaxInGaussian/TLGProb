@@ -7,3 +7,4 @@
 
 from .TLGProb import TLGProb
 from .nba_bot import NBA_Bot
+from .WrappedPredictor import WrappedPredictor
