@@ -8,13 +8,14 @@
 import sys, os
 import csv
 import numpy as np
+import random
 from SSGP import SSGP
 
 class WrappedPredictor(object):
     
     def __init__(self, regression_method="", predictor=None, X_train=None, y_train=None):
         self.regression_method = regression_method
-        if(self.predictor is None):
+        if(predictor is None):
             self.predictor = SSGP()
         else:
             self.predictor = predictor
@@ -29,7 +30,7 @@ class WrappedPredictor(object):
         if(self.regression_method == "SSGPR"):
             return self.predictor.predict(X_test, y_test)
         mu = self.predictor.predict(X_test)
-        std = np.sqrt(np.sum((self.predictor.predict(self.X_train)-self.y_train)**2))
+        std = np.sqrt(np.mean((self.predictor.predict(self.X_train)-self.y_train)**2))
         if(y_test is None):
             return mu, std
         y_mu = np.mean(y_test.ravel())

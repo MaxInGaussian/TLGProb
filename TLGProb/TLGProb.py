@@ -382,10 +382,10 @@ class TLGProb(object):
             csv_dict = dict.fromkeys(headers)
             from datetime import datetime
             csv_dict[headers[0]] = datetime.today().strftime("%Y-%m-%d")
-            csv_dict[headers[1]] = self.loaded_winning_team_model.__str__()
-            csv_dict[headers[2]] = self.loaded_player_models["C"].__str__()
-            csv_dict[headers[3]] = self.loaded_player_models["F"].__str__()
-            csv_dict[headers[4]] = self.loaded_player_models["G"].__str__()
+            csv_dict[headers[1]] = self.loaded_winning_team_model.regression_method+"-"+self.loaded_winning_team_model.hashed_name
+            csv_dict[headers[2]] = self.loaded_player_models["C"].regression_method+"-"+self.loaded_player_models["C"].hashed_name
+            csv_dict[headers[3]] = self.loaded_player_models["F"].regression_method+"-"+self.loaded_player_models["F"].hashed_name
+            csv_dict[headers[4]] = self.loaded_player_models["G"].regression_method+"-"+self.loaded_player_models["G"].hashed_name
             csv_dict[headers[5]] = test_size
             csv_dict[headers[6]] = count_reject
             csv_dict[headers[7]] = count_correct
@@ -463,28 +463,18 @@ class TLGProb(object):
         return True
 
     def load_winning_team_model(self, regression_method="SSGPR"):
-        print("loading trained Winning Team Predict Model......")
-        if(regression_method == "SSGPR"):
-            self.loaded_winning_team_model = SSGP()
-            self.loaded_winning_team_model.load(self.get_winning_team_model_path(regression_method))
-            print("loaded SSGP", self.loaded_winning_team_model.hashed_name)
-        else:
-            import pickle
-            with open(self.get_winning_team_model_path(regression_method), "rb") as load_f:
-                self.loaded_winning_team_model = pickle.load(load_f)
+        print("loading trained TEAM model......")
+        self.loaded_winning_team_model = WrappedPredictor(regression_method)
+        self.loaded_winning_team_model.load(self.get_winning_team_model_path(regression_method))
+        print("loaded", regression_method, "model", self.loaded_winning_team_model.hashed_name)
 
     def load_player_models(self, regression_method="SSGPR"):
-        print("loading trained models......")
+        print("loading trained POSITION models......")
         self.loaded_player_models = {}
         for pos in ["C", "F", "G"]:
-            if(regression_method == "SSGPR"):
-                self.loaded_player_models[pos] = SSGP()
-                self.loaded_player_models[pos].load(self.get_player_model_path_by_pos(pos))
-                print("loaded SSGP", self.loaded_player_models[pos].hashed_name, "for position", pos)
-            else:
-                import pickle
-                with open(self.get_player_model_path_by_pos(pos, regression_method), "rb") as load_f:
-                    self.loaded_player_models[pos] = pickle.load(load_f)
+            self.loaded_player_models[pos] = WrappedPredictor(regression_method)
+            self.loaded_player_models[pos].load(self.get_player_model_path_by_pos(pos, regression_method))
+            print("loaded", regression_method, "model", self.loaded_player_models[pos].hashed_name)
         
     def get_winning_team_model_path(self, regression_method="SSGPR", name=""):
         model_dir = self.model_path+regression_method+"/"
@@ -758,6 +748,7 @@ class TLGProb(object):
                 }
             )
             model.fit(X, y.ravel())
+            model = model.best_estimator_
         elif(regression_method == "DecisionTreeRegressor"):
             from sklearn.tree import DecisionTreeRegressor
             model = GridSearchCV(
@@ -771,6 +762,7 @@ class TLGProb(object):
                 }
             )
             model.fit(X, y.ravel())
+            model = model.best_estimator_
         elif(regression_method == "AdaBoostDecisionTreeRegressor"):
             from sklearn.ensemble import AdaBoostRegressor
             from sklearn.tree import DecisionTreeRegressor
@@ -800,6 +792,7 @@ class TLGProb(object):
                 }
             )
             model.fit(X, y.ravel())
+            model = model.best_estimator_
         elif(regression_method == "GradientBoostingRegressor"):
             from sklearn.ensemble import GradientBoostingRegressor
             model = GridSearchCV(
@@ -815,6 +808,7 @@ class TLGProb(object):
                 }
             )
             model.fit(X, y.ravel())
+            model = model.best_estimator_
         elif(regression_method == "RandomForestRegressor"):
             from sklearn.ensemble import RandomForestRegressor
             model = GridSearchCV(
@@ -829,6 +823,7 @@ class TLGProb(object):
                 }
             )
             model.fit(X, y.ravel())
+            model = model.best_estimator_
         model = WrappedPredictor(regression_method, model, X, y)
         model.save(model_path)
         mse, nmse, mnlp = model.predict(X.copy(), y.copy())

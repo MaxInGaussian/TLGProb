@@ -7,7 +7,8 @@
 
 import sys
 sys.path.append("../")
-from TLGProb import TLGProb
+import pickle
+from TLGProb import TLGProb, WrappedPredictor
 
 
 TLGProb_NBA = TLGProb(
@@ -15,9 +16,7 @@ TLGProb_NBA = TLGProb(
     model_path="trained_models/")
 TLGProb_NBA.load_data()
 regression_methods = [
-    "SSGPR", "KNeighborsRegressor",
-    "DecisionTreeRegressor", "AdaBoostDecisionTreeRegressor",
-    "GradientBoostingRegressor", "RandomForestRegressor"]
+    "KNeighborsRegressor", "DecisionTreeRegressor", "AdaBoostDecisionTreeRegressor",
+    "GradientBoostingRegressor", "RandomForestRegressor", "SSGPR"]
 for regression_method in regression_methods:
-    TLGProb_NBA.train_player_models(regression_method=regression_method)
-    TLGProb_NBA.train_winning_team_model(regression_method=regression_method)
+    TLGProb_NBA.eval_accuracy(2015, regression_methods=["DecisionTreeRegressor", regression_method])
