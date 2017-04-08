@@ -720,7 +720,6 @@ class TLGProb(object):
         best_model_path = self.get_winning_team_model_path()
         self.train_regression(X, y, model_path, best_model_path, regression_method)
     
-    
     def train_regression(self, X, y, model_path, best_model_path, regression_method):
         import glob
         from sklearn.model_selection import GridSearchCV
