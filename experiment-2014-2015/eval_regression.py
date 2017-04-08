@@ -16,7 +16,7 @@ TLGProb_NBA = TLGProb(
     model_path="trained_models/")
 TLGProb_NBA.load_data()
 regression_methods = [
-    "KNeighborsRegressor", "DecisionTreeRegressor", "AdaBoostDecisionTreeRegressor",
+    "KernelRidge", "DecisionTreeRegressor", "AdaBoostDecisionTreeRegressor",
     "GradientBoostingRegressor", "RandomForestRegressor", "SSGPR"]
 for regression_method in regression_methods:
-    TLGProb_NBA.eval_accuracy(2015, regression_methods=["DecisionTreeRegressor", regression_method])
+    TLGProb_NBA.eval_accuracy(2015, threshold=0.5, regression_methods=["KernelRidge", regression_method])

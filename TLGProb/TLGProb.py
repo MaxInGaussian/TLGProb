@@ -733,18 +733,17 @@ class TLGProb(object):
             print("TRY NEW MODEL [SSGP %d (%s)]......" % (model.m,
                 ("NOISY" if freq_noisy else "NOT_NOISY")))
             model.fit(X.copy(), y.copy())
-        elif(regression_method == "KNeighborsRegressor"):
-            from sklearn.neighbors import KNeighborsRegressor
+        elif(regression_method == "KernelRidge"):
+            from sklearn.kernel_ridge import KernelRidge
             model = GridSearchCV(
-                KNeighborsRegressor(weights='distance'),
+                KernelRidge(kernel='rbf', gamma=0.1),
                 cv=5,
                 n_jobs=2,
                 verbose=True,
                 scoring='neg_mean_squared_error',
                 param_grid={
-                    "n_neighbors": list(range(1, 16)),
-                    'metric':['euclidean', 'manhattan',
-                    'chebyshev', 'canberra', 'braycurtis']
+                    "alpha": [1, 1e-1, 1e-2, 1e-3],
+                    "gamma": np.logspace(-3, 3, 10)
                 }
             )
             model.fit(X, y.ravel())
